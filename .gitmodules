@@ -1,0 +1,6 @@
+[submodule "ros2_ws2/src/livox_ros_driver2"]
+	path = ros2_ws2/src/livox_ros_driver2
+	url = https://github.com/Livox-SDK/livox_ros_driver2
+[submodule "extern/Livox-SDK2"]
+	path = extern/Livox-SDK2
+	url = https://github.com/Livox-SDK/Livox-SDK2
