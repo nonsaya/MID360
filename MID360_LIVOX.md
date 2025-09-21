@@ -32,7 +32,12 @@ Jetson Orin Nano: JetPack 6 環境でも上記でOK（NVIDIA提供のROS 2を使
 ## 2. ネットワーク確認
 
 ```bash
-# 例: 有線NIC を 192.168.1.50/24 に設定（方法は環境依存）
+# 例: 有線NIC enP8p1s0 を 192.168.1.50/24 に設定
+sudo ip addr flush dev enP8p1s0
+sudo ip addr add 192.168.1.50/24 dev enP8p1s0
+sudo ip link set enP8p1s0 up
+
+# 確認と疎通
 ip -br addr show
 ping -c 3 192.168.1.3    # MID360 への疎通
 ```
@@ -62,6 +67,8 @@ make -j"$(nproc)"
 
 # 記事どおり /usr/local に配置
 sudo make install
+# ライブラリキャッシュ更新（必須）
+sudo ldconfig
 
 # 環境（必要なら）
 grep -q PKG_CONFIG_PATH ~/.bashrc || echo 'export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig' >> ~/.bashrc
@@ -126,6 +133,8 @@ bash ./build.sh humble
 ```
 
 ## 7. ドライバの起動（PointCloud2 出力で一本化）
+
+- 注: bash で `set -u`（未定義変数でエラー）を有効にしている場合、手動で `source /opt/ros/humble/setup.bash` する前に一度 `set +u` を実行してください。
 
 ```bash
 # ターミナル1（ドライバ）
