@@ -1,7 +1,23 @@
 # ROS 2 build artifacts
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
 ros2_ws2/build/
 ros2_ws2/install/
 ros2_ws2/log/
 
-# Livox SDK2 build artifacts
-extern/Livox-SDK2/build/
+# FAST-LIO backups and generated dirs (local only)
+ros2_ws2/src/FAST_LIO.backup.*
+ros2_ws2/src/livox_to_pointcloud2/
+
+# Local vendor/libs and experiments (keep untracked)
+Livox-SDK2/
+gtsam/
+gtsam_points/
+iridescence/
+glim/
+glim_core/
+glim_ros2/
+
+# Misc
+imgui.ini

@@ -2,6 +2,8 @@
 
 このドキュメントは、Livox MID360 を ROS 2 Humble 環境で動作させ、RViz で可視化できるところまでを、Git管理前提で手順化したものです。Orange Pi 5 Max で検証済み、Jetson Orin Nano でも同手順で再現可能です。
 
+> 注記: 本プロジェクトでは SLAM は GLIM を採用しており、FAST-LIO の導入は行いません。
+
 #### 前提
 - OS: Ubuntu 22.04 (JetPack 6 系は 22.04 ベース)
 - ROS 2: Humble (apt でインストール済みを想定)

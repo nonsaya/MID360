@@ -1,5 +1,7 @@
 ## Jetson Orin（CPU版）GLIM + Livox MID360 セットアップ手順
 
+> 本プロジェクトのSLAMはGLIM（CPU版）を採用しています。FAST-LIOは導入しません。
+
 このドキュメントは、Jetson Orin 環境で GPU を使わずに GLIM を動作させるための最小構成セットアップ手順です。Livox MID360 のドライバ（livox_ros_driver2）と GLIM（CPUモジュールのみ）を用い、ROS 2 で点群を処理します。
 
 ### 動作確認環境
