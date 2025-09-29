@@ -49,22 +49,23 @@ git clone https://github.com/Livox-SDK/Livox-SDK2.git
 cd Livox-SDK2 && mkdir build && cd build
 cmake .. && make -j4
 sudo make install
+sudo ldconfig
 ```
 
-### 2-2. ROS2 ワークスペース作成と livox_ros_driver2
+### 2-2. ROS2 ワークスペース作成と livox_ros_driver2（ros2_ws2 を使用）
 ```bash
 source /opt/ros/humble/setup.bash
-mkdir -p ~/repo/mid360/ros2_ws/src
-cd ~/repo/mid360/ros2_ws/src
+mkdir -p ~/repo/mid360/ros2_ws2/src
+cd ~/repo/mid360/ros2_ws2/src
 git clone https://github.com/Livox-SDK/livox_ros_driver2.git
-cd livox_ros_driver2 && mv package_ROS2.xml package.xml
 
-cd ~/repo/mid360/ros2_ws
-colcon build --cmake-args -DROS_EDITION="ROS2" -DHUMBLE_ROS="humble" --symlink-install
+# 付属スクリプトでROS 2 Humble向けにビルド
+cd ~/repo/mid360/ros2_ws2/src/livox_ros_driver2
+bash ./build.sh humble
 ```
 
 ### 2-3. MID360 設定
-`~/repo/mid360/ros2_ws/src/livox_ros_driver2/config/MID360_config.json` を編集し、Jetson と LiDAR の IP を設定します。
+`~/repo/mid360/configs/livox/MID360_config.json` を編集し、Jetson と LiDAR の IP を設定します。
 
 ```json
 {
@@ -151,15 +152,16 @@ export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
 
 ---
 
-## 5. ROS2 側（glim_ros）ビルド
+## 5. ROS2 側（glim_ros）ビルド（ros2_ws2 を使用）
 `glim_ros2` をワークスペースに置き、GLIM の CMake を `~/.local` から解決してビルドします。
 
 ```bash
-cd ~/repo/mid360/ros2_ws/src
+cd ~/repo/mid360/ros2_ws2/src
 git clone https://github.com/koide3/glim_ros2.git
 
-cd ~/repo/mid360/ros2_ws
+cd ~/repo/mid360/ros2_ws2
 CMAKE_PREFIX_PATH=$HOME/.local colcon build \
+  --packages-select glim_ros \
   --cmake-args -DROS_EDITION=ROS2 -DHUMBLE_ROS=humble --symlink-install
 ```
 
@@ -193,25 +195,49 @@ sed -i -E \
 
 ## 7. 実行手順（ヘッドレス可）
 
-### 7-1. Livox ドライバ起動
+### 7-1. Livox ドライバ起動（ros2_ws2）
 ```bash
 source /opt/ros/humble/setup.bash
-source ~/repo/mid360/ros2_ws/install/setup.sh
+source ~/repo/mid360/ros2_ws2/install/setup.bash
 ros2 run livox_ros_driver2 livox_ros_driver2_node \
-  --ros-args -p user_config_path:=/home/$USER/repo/mid360/ros2_ws/src/livox_ros_driver2/config/MID360_config.json
+  --ros-args -p user_config_path:=/home/$USER/repo/mid360/configs/livox/MID360_config.json
 ```
 
 `ros2 topic list` で `/livox/lidar` `/livox/imu` が出ていることを確認してください。
 
 ### 7-2. GLIM 起動（CPU）
+
+#### 7-2-a. ビューワ付き起動（DISPLAY あり、または仮想ディスプレイ）
 ```bash
 export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
 source /opt/ros/humble/setup.bash
-source ~/repo/mid360/ros2_ws/install/setup.sh
+source ~/repo/mid360/ros2_ws2/install/setup.bash
+
+# 物理ディスプレイがある場合はそのまま
 ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
+
+# ヘッドレスでビューワも使いたい場合（任意）
+# sudo apt install -y xvfb
+# xvfb-run -s '-screen 0 1280x800x24' \
+#   ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
 ```
 
-RViz2 は任意です（GLIM 内蔵ビューワあり）。ヘッドレスでビューワが不要な場合は `~/config/config_ros.json` の `extension_modules` から `librviz_viewer.so` を外しても構いません。
+#### 7-2-b. ビューワ無し起動（ヘッドレス最小構成）
+`~/config/config_ros.json` の `extension_modules` を次の内容に変更します。
+```json
+{
+  "glim_ros": {
+    "extension_modules": ["libmemory_monitor.so"]
+  }
+}
+```
+その後、以下で起動します。
+```bash
+export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
+source /opt/ros/humble/setup.bash
+source ~/repo/mid360/ros2_ws2/install/setup.bash
+ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
+```
 
 ---
 
@@ -347,7 +373,7 @@ pkill -f ros2 || true
 # 毎回の前提（環境設定とライブラリパス）
 export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
 source /opt/ros/humble/setup.bash
-source ~/repo/mid360/ros2_ws/install/setup.sh
+source ~/repo/mid360/ros2_ws2/install/setup.sh
 
 # GLIM（CPU）を起動
 ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
