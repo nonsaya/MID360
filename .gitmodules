@@ -4,3 +4,6 @@
 [submodule "extern/Livox-SDK2"]
 	path = extern/Livox-SDK2
 	url = https://github.com/Livox-SDK/Livox-SDK2
+[submodule "ros2_ws2/src/glim_ros2"]
+	path = ros2_ws2/src/glim_ros2
+	url = https://github.com/koide3/glim_ros2
