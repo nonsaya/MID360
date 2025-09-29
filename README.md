@@ -64,6 +64,20 @@ ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
   - GLIMのZは補助（低重み）
 
 ## 外部PCでの静止マップ作成
+
+## MAVROS 起動例 (ArduPilot/APM)
+
+```bash
+source /opt/ros/humble/setup.bash
+ros2 launch mavros apm.launch \
+  fcu_url:=serial:///dev/ttyTHS1:921600 \
+  fcu_protocol:=v2.0 \
+  gcs_url:=udp://@
+```
+
+- FCUポートは実機に合わせて変更（例: /dev/ttyUSB0 / /dev/ttyACM0 / /dev/ttyTHS*）
+- 接続確認: `ros2 topic echo /mavros/state`
+
 - Jetson: 制御系（livox + GLIM + MAVROS）
 - 外部PC: GLIMのみ（MAVROSは起動しない）
   - 名前空間: `--ros-args -r __ns:=/offboard_glim`
