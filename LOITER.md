@@ -172,3 +172,38 @@ ros2 topic pub /mavros/setpoint_position/local geometry_msgs/msg/PoseStamped \
 - FCU 側 Parameter を適用後は再起動して反映
 
 
+---
+
+### 9. 各ノードの停止方法（安全手順）
+
+最優先は「起動させたターミナルで Ctrl+C（SIGINT）」です。ヘッドレス運用で端末を閉じてしまった場合のみ、以下を使用します。
+
+```bash
+# 実行中プロセスの確認（必要なもののみ停止）
+pgrep -fa 'livox_ros_driver2|glim_rosnode|glim_extnav_bridge|mavros|component_container|rviz2'
+
+# 個別停止（優先: SIGTERM）
+pkill -f livox_ros_driver2           || true   # LiDAR ドライバ
+pkill -f glim_rosnode                || true   # GLIM
+pkill -f glim_extnav_bridge          || true   # 外部航法ブリッジ
+pkill -f mavros                      || true   # MAVROS（launch含む）
+pkill -f component_container         || true   # ROS 2 コンテナ（使用時）
+pkill -f rviz2                       || true   # RViz（使用時）
+
+# なお残る場合のみ（強制終了: SIGKILL）
+pkill -9 -f livox_ros_driver2        || true
+pkill -9 -f glim_rosnode             || true
+pkill -9 -f glim_extnav_bridge       || true
+pkill -9 -f mavros                   || true
+pkill -9 -f component_container      || true
+pkill -9 -f rviz2                    || true
+
+# すべてのROS2プロセスを一括停止（最後の手段）
+pkill -f ros2 || true
+```
+
+補足:
+- systemd サービスで起動している場合は `systemctl stop <service>` を使用。
+- `pkill -9` は最後の手段。まず Ctrl+C → `pkill`（SIGTERM）→ それでも残る場合のみ実施。
+
+
