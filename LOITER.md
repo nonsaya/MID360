@@ -61,6 +61,27 @@ ros2 topic hz /glim_ros/odom
 - フレーム: 典型的に `odom`（親）/ `base_frame_id`（子, 本手順では `livox_frame`）
 - 必要に応じて `~/config/config_ros.json` の `points_topic` / `imu_topic` / frame_id 等を調整
 
+ヘッドレス環境の注意（DISPLAY なしでの起動）:
+
+- 典型的なエラー例:
+  ```
+  glfw error 65544: X11: The DISPLAY environment variable is missing
+  failed to initialize GLFW
+  [ros2run]: Segmentation fault
+  ```
+- 推奨対処: 仮想ディスプレイでラップして起動（設定変更不要）
+  ```bash
+  sudo apt update && sudo apt install -y xvfb
+  xvfb-run -a -s "-screen 0 1280x800x24" \
+    ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
+  ```
+- 恒久対処（GUI不要の場合）: GLIMのビューアを無効化
+  - `config_ros.json` などで `standard_viewer`（viewer）相当のプラグイン読み込みを無効化（enabled=false など）。
+  - ビューアを読み込まなければ GLIM は DISPLAY なしでも動作します。
+- GUIが使える環境なら: X転送または実ディスプレイを使用
+  - SSH の場合は `ssh -X` でログインして起動
+  - ローカルXがある場合は `export DISPLAY=:0` 後に起動
+
 ---
 
 ### 3. MAVROS 起動（FCU 接続済み前提）
