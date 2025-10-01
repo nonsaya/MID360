@@ -52,8 +52,15 @@ ros2 topic hz /livox/imu
 export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
 source /opt/ros/humble/setup.bash
 source ~/repo/mid360/ros2_ws2/install/setup.bash
-\# リポジトリ内の設定 + ヘッドレス（xvfb）で起動
-sudo apt update && sudo apt install -y xvfb
+# リポジトリ内の設定 + ヘッドレス（xvfb）で起動
+# xvfb は初回のみインストール（以降はスキップ可）
+command -v xvfb-run >/dev/null 2>&1 || (sudo apt update && sudo apt install -y xvfb)
+xvfb-run -a -s "-screen 0 1280x800x24" \
+  ros2 run glim_ros glim_rosnode --ros-args \
+    -p config_path:=/home/$USER/repo/mid360/glim/config
+
+# 以降（xvfbを既にインストール済みの場合）は、これだけでOK
+#（毎回のインストールや環境設定は不要）
 xvfb-run -a -s "-screen 0 1280x800x24" \
   ros2 run glim_ros glim_rosnode --ros-args \
     -p config_path:=/home/$USER/repo/mid360/glim/config
@@ -73,9 +80,9 @@ ros2 topic hz /glim_ros/odom
   failed to initialize GLFW
   [ros2run]: Segmentation fault
   ```
-- 推奨対処: 仮想ディスプレイ（xvfb）で起動
+- 推奨対処: 仮想ディスプレイ（xvfb）で起動（xvfb は初回のみインストール）
   ```bash
-  sudo apt update && sudo apt install -y xvfb
+  command -v xvfb-run >/dev/null 2>&1 || (sudo apt update && sudo apt install -y xvfb)
   xvfb-run -a -s "-screen 0 1280x800x24" \
     ros2 run glim_ros glim_rosnode --ros-args \
       -p config_path:=/home/$USER/repo/mid360/glim/config
@@ -253,7 +260,6 @@ ros2 topic pub /mavros/setpoint_position/local geometry_msgs/msg/PoseStamped \
 運用の勘所:
 - まず `none` で評価し、Loiter が不安定なら `arrival` へ切替
 - FCU 側 Parameter を適用後は再起動して反映
-
 
 ---
 
