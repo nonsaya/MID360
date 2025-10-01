@@ -175,3 +175,11 @@ ros2 topic pub /mavros/setpoint_velocity/cmd_vel geometry_msgs/msg/Twist \
 - `jetson_GLIM_cpu-install.md`（詳細手順）
 - `MID360_LIVOX.md`（ドライバ運用注意）
 - `Origin-HardWare.md`（機材・環境サマリー）
+
+## 運用ガイド
+- `LOITER.md`（LOITER運用ガイド）
+
+## 参考ドキュメント
+- `jetson_GLIM_cpu-install.md`（詳細手順）
+- `MID360_LIVOX.md`（ドライバ運用注意）
+- `Origin-HardWare.md`（機材・環境サマリー）
