@@ -52,7 +52,11 @@ ros2 topic hz /livox/imu
 export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
 source /opt/ros/humble/setup.bash
 source ~/repo/mid360/ros2_ws2/install/setup.bash
-ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
+\# リポジトリ内の設定 + ヘッドレス（xvfb）で起動
+sudo apt update && sudo apt install -y xvfb
+xvfb-run -a -s "-screen 0 1280x800x24" \
+  ros2 run glim_ros glim_rosnode --ros-args \
+    -p config_path:=/home/$USER/repo/mid360/glim/config
 
 # 確認
 ros2 topic hz /glim_ros/odom
@@ -69,15 +73,14 @@ ros2 topic hz /glim_ros/odom
   failed to initialize GLFW
   [ros2run]: Segmentation fault
   ```
-- 推奨対処: 仮想ディスプレイでラップして起動（設定変更不要）
+- 推奨対処: 仮想ディスプレイ（xvfb）で起動
   ```bash
   sudo apt update && sudo apt install -y xvfb
   xvfb-run -a -s "-screen 0 1280x800x24" \
-    ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
+    ros2 run glim_ros glim_rosnode --ros-args \
+      -p config_path:=/home/$USER/repo/mid360/glim/config
   ```
-- 恒久対処（GUI不要の場合）: GLIMのビューアを無効化
-  - `config_ros.json` などで `standard_viewer`（viewer）相当のプラグイン読み込みを無効化（enabled=false など）。
-  - ビューアを読み込まなければ GLIM は DISPLAY なしでも動作します。
+- 注意: 現行構成ではPublisherがビューアモジュールに結合しているため、`libstandard_viewer.so`を完全に外すとトピックが出ない場合があります。完全ヘッドレスを行うには、Publisherを独立させる構成/ビルドに切替える必要があります。
 - GUIが使える環境なら: X転送または実ディスプレイを使用
   - SSH の場合は `ssh -X` でログインして起動
   - ローカルXがある場合は `export DISPLAY=:0` 後に起動
