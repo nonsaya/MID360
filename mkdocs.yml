@@ -1,0 +1,22 @@
+site_name: MID360 LOITER Docs
+site_url: https://example.com
+repo_url: https://github.com/OWNER/mid360
+repo_name: OWNER/mid360
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.sections
+    - content.code.copy
+plugins:
+  - search
+  - include-markdown
+nav:
+  - Home: index.md
+  - LOITER: LOITER.md
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - codehilite
+
