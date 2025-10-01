@@ -176,6 +176,19 @@ ros2 topic pub /mavros/setpoint_velocity/cmd_vel geometry_msgs/msg/Twist \
 - `MID360_LIVOX.md`（ドライバ運用注意）
 - `Origin-HardWare.md`（機材・環境サマリー）
 
+## 最新の動作確認結果（2025-10-01）
+
+✅ **GLIM正常動作確認済み**
+- ヘッドレス環境での起動: `xvfb-run`使用で正常動作
+- 点群データ配信: `/glim_ros/points`で20Hz安定配信
+- オドメトリデータ配信: `/glim_ros/odom`で正常配信
+- 点群表示: ビューワーで正常表示確認（伸び問題解決済み）
+
+✅ **設定ファイル修正済み**
+- `T_lidar_imu`: 単位変換（`[0,0,0,0,0,0,1]`）で点群伸び問題解決
+- Livoxトピック設定: `/livox/imu`, `/livox/lidar`に正しく設定
+- CPU用設定: GPU→CPU切り替え完了
+
 ## 運用ガイド
 - `LOITER.md`（LOITER運用ガイド）
 
@@ -183,3 +196,5 @@ ros2 topic pub /mavros/setpoint_velocity/cmd_vel geometry_msgs/msg/Twist \
 - `jetson_GLIM_cpu-install.md`（詳細手順）
 - `MID360_LIVOX.md`（ドライバ運用注意）
 - `Origin-HardWare.md`（機材・環境サマリー）
+
+

@@ -87,7 +87,7 @@ ros2 topic hz /glim_ros/odom
     ros2 run glim_ros glim_rosnode --ros-args \
       -p config_path:=/home/$USER/repo/mid360/glim/config
   ```
-- 注意: 現行構成ではPublisherがビューアモジュールに結合しているため、`libstandard_viewer.so`を完全に外すとトピックが出ない場合があります。完全ヘッドレスを行うには、Publisherを独立させる構成/ビルドに切替える必要があります。
+- **重要**: 現行構成ではPublisherがビューアモジュールに結合しているため、`extension_modules`を空にするとトピックが配信されません。必ず`["libstandard_viewer.so", "libmemory_monitor.so"]`を含める必要があります。完全ヘッドレスを行うには、Publisherを独立させる構成/ビルドに切替える必要があります。
 - GUIが使える環境なら: X転送または実ディスプレイを使用
   - SSH の場合は `ssh -X` でログインして起動
   - ローカルXがある場合は `export DISPLAY=:0` 後に起動
