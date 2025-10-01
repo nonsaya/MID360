@@ -6,9 +6,12 @@
 
 ```mermaid
 flowchart LR
-  A[Livox MID360] -- "/livox/lidar (~10Hz)\n/livox/imu (~200Hz)" --> B[GLIM (ROS2)]
-  B -- "/glim_ros/odom (~10Hz)\n/glim_ros/odom_corrected (~10Hz)\n/glim_ros/pose (~10Hz)" --> C[glim_extnav_bridge]
-  C -- "/mavros/odometry/in (10–20Hz)" --> D[MAVROS]
+  A[Livox MID360] -- "/livox/lidar (~10Hz)" --> B[GLIM (ROS2)]
+  A -- "/livox/imu (~200Hz)" --> B
+  B -- "/glim_ros/odom (~10Hz)" --> C[glim_extnav_bridge]
+  B -- "/glim_ros/odom_corrected (~10Hz)" --> C
+  B -- "/glim_ros/pose (~10Hz)" --> C
+  C -- "/mavros/odometry/in (10-20Hz)" --> D[MAVROS]
   D -- "MAVLink: ODOMETRY" --> E[ArduPilot EKF3]
   E -- "推定ローカル位置/速度/ヨー" --> F[LOITER制御]
 ```
