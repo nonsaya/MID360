@@ -32,25 +32,27 @@ source ~/repo/mid360/ros2_ws2/install/setup.bash
 ros2 run livox_ros_driver2 livox_ros_driver2_node \
   --ros-args -p user_config_path:=/home/$USER/repo/mid360/configs/livox/MID360_config.json
 ```
-- GLIM（ビューワ無し/ヘッドレス）
+- GLIM（ヘッドレス環境 - 推奨）
 ```bash
 export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
 source /opt/ros/humble/setup.bash
 source ~/repo/mid360/ros2_ws2/install/setup.bash
-# ~/config/config_ros.json の extension_modules を ["libmemory_monitor.so"] に設定
-ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
+# xvfbが未インストールの場合（初回のみ）
+command -v xvfb-run >/dev/null 2>&1 || (sudo apt update && sudo apt install -y xvfb)
+# ヘッドレス起動（DISPLAY環境変数無しでも動作）
+xvfb-run -a -s "-screen 0 1280x800x24" \
+  ros2 run glim_ros glim_rosnode --ros-args \
+    -p config_path:=$(realpath ~/config)
 ```
-- GLIM（ビューワ有り）
+- GLIM（GUI環境）
 ```bash
 export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
 source /opt/ros/humble/setup.bash
 source ~/repo/mid360/ros2_ws2/install/setup.bash
 ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
-# ヘッドレスでビューワ利用時の例（任意）
-# sudo apt install -y xvfb
-# xvfb-run -s '-screen 0 1280x800x24' \
-#   ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
 ```
+
+**重要**: 現行GLIMビルドではROSパブリッシャーがビューワモジュール（`libstandard_viewer.so`）と結合しているため、`extension_modules`を空にするとトピックが配信されません。必ず`["libstandard_viewer.so", "libmemory_monitor.so"]`を含める必要があります。
 
 ## 運用方針（ArduPilot 連携）
 - 目標フロー
