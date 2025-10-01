@@ -114,6 +114,38 @@ ros2 topic info /mavros/odometry/in
 
 ---
 
+### 4.5 RViz2 で GLIM/MAVROS の Pose 整合を事前確認（実機前推奨）
+
+- 準備（型とフレーム確認）
+  ```bash
+  ros2 topic info /glim_ros/pose
+  ros2 topic info /mavros/local_position/pose
+  # どちらも geometry_msgs/msg/PoseStamped であること、header.frame_id を確認（例: map / odom など）
+  ```
+
+- RViz2 表示手順
+  - `rviz2` を起動し、Fixed Frame を両者で共通なフレーム（例: `map` または `odom`）に設定
+  - Displays → Add → Pose を2つ追加し、Topic をそれぞれ `/glim_ros/pose` と `/mavros/local_position/pose` に設定
+  - Displays → Add → TF を追加（座標軸の整合確認用）
+  - 実機を手で動かし、2つの Pose が方向/量ともに追従するか、原点や姿勢に恒常オフセットがないか確認
+
+- フレームが合わない/恒常オフセットがある場合の対処
+  - Fixed Frame を片方の `frame_id` に合わせるか、静的 TF で橋渡し
+  - 例: `map` と `glim_world` を一時的に一致させる（恒等変換）
+    ```bash
+    ros2 run tf2_ros static_transform_publisher 0 0 0 0 0 0 map glim_world
+    ```
+  - 恒常オフセット（並進/回転）があるなら、その値を推定して静的 TF に反映
+
+- 実験ログ（オフライン比較用）
+  ```bash
+  ros2 bag record /glim_ros/pose /mavros/local_position/pose /tf /tf_static
+  ```
+
+メモ:
+- MAVROS 側のトピックは ENU に変換されているため、RViz2 上では ENU で揃うのが通常です。
+- 長時間のドリフト傾向を視覚化したい場合は、`nav_msgs/Path` で軌跡比較ノードを用いると見やすくなります。
+
 ### 5. ArduPilot EKF3 外部航法設定（例）
 
 - `EK3_SRC1_POSXY = 6`（ExternalNav）
