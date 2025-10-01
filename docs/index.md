@@ -18,13 +18,4 @@ title: MID360 + GLIM + MAVROS + ArduPilot/EKF3
 - GLIM 起動: セクション「2. GLIM（ヘッドレス）起動」
 - ブリッジ起動: セクション「4. GLIM→MAVROS 外部航法ブリッジ」
 - RViz2 比較検証: セクション「4.5 RViz2 で GLIM/MAVROS の Pose 整合を事前確認」
-# MID360 (Jetson Orin Nano) - Docs
-
-このサイトは GitHub Pages から配信する想定のドキュメントです。
-
-- プロジェクトREADME: [../README.md](../README.md)
-- LOITER運用ガイド: [../LOITER.md](../LOITER.md)
-
-GitHub Pages 設定:
-- リポジトリ設定 → Pages → Source: `main` ブランチ / フォルダ: `/docs`
-- 保存後、しばらく待つと公開されます（URLはGitHubの設定画面に表示）
+<!-- 外部のルートファイル参照は strict ビルドで警告となるため削除 -->
