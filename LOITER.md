@@ -52,7 +52,11 @@ ros2 topic hz /livox/imu
 export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
 source /opt/ros/humble/setup.bash
 source ~/repo/mid360/ros2_ws2/install/setup.bash
-ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
+\# リポジトリ内の設定 + ヘッドレス（xvfb）で起動
+sudo apt update && sudo apt install -y xvfb
+xvfb-run -a -s "-screen 0 1280x800x24" \
+  ros2 run glim_ros glim_rosnode --ros-args \
+    -p config_path:=/home/$USER/repo/mid360/glim/config
 
 # 確認
 ros2 topic hz /glim_ros/odom
@@ -69,15 +73,14 @@ ros2 topic hz /glim_ros/odom
   failed to initialize GLFW
   [ros2run]: Segmentation fault
   ```
-- 推奨対処: 仮想ディスプレイでラップして起動（設定変更不要）
+- 推奨対処: 仮想ディスプレイ（xvfb）で起動
   ```bash
   sudo apt update && sudo apt install -y xvfb
   xvfb-run -a -s "-screen 0 1280x800x24" \
-    ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
+    ros2 run glim_ros glim_rosnode --ros-args \
+      -p config_path:=/home/$USER/repo/mid360/glim/config
   ```
-- 恒久対処（GUI不要の場合）: GLIMのビューアを無効化
-  - `config_ros.json` などで `standard_viewer`（viewer）相当のプラグイン読み込みを無効化（enabled=false など）。
-  - ビューアを読み込まなければ GLIM は DISPLAY なしでも動作します。
+- 注意: 現行構成ではPublisherがビューアモジュールに結合しているため、`libstandard_viewer.so`を完全に外すとトピックが出ない場合があります。完全ヘッドレスを行うには、Publisherを独立させる構成/ビルドに切替える必要があります。
 - GUIが使える環境なら: X転送または実ディスプレイを使用
   - SSH の場合は `ssh -X` でログインして起動
   - ローカルXがある場合は `export DISPLAY=:0` 後に起動
@@ -109,14 +112,13 @@ colcon build --packages-select glim_extnav_bridge
 source install/setup.bash
 ```
 
-起動（既定: GLIMの stamp を転送）:
+起動（推奨: 到着時刻で再スタンプ＝arrival）:
 ```bash
 ros2 launch glim_extnav_bridge bridge.launch.py \
   glim_namespace:=/glim_ros \
   use_corrected:=false \
   publish_rate_hz:=15.0 \
-  odom_child_frame_id:="" \
-  restamp_source:=none \
+  restamp_source:=arrival \
   reject_older_than_ms:=200.0 \
   publish_immediately:=true
 ```
@@ -134,6 +136,34 @@ ros2 topic info /mavros/odometry/in
 トラブルシュート: `launch` が `libexec directory ... does not exist` を出す場合は、直前に `colcon build` と `source install/setup.bash` が実行されているか確認
 
 ---
+
+### 4.6 代替: MAVROSのvision経路で供給（ODOMETRYが採用されない場合）
+
+- 目的: GLIMの出力を `/mavros/vision_pose/pose` と `/mavros/vision_speed/speed_twist` にリパブリッシュ
+- 前提: 本リポジトリには`glim_vision_bridge`を追加済み（ビルド済みなら以下のbuildはスキップ可）
+
+ビルド（初回のみ）:
+```bash
+source /opt/ros/humble/setup.bash
+cd ~/repo/mid360/ros2_ws2
+colcon build --packages-select glim_vision_bridge
+source install/setup.bash
+```
+
+起動（既定: GLIMの `/glim_ros/odom` を使用）:
+```bash
+ros2 launch glim_vision_bridge bridge.launch.py \
+  glim_namespace:=/glim_ros \
+  use_corrected:=false
+```
+
+確認（期待周波数 ≈10 Hz）:
+```bash
+ros2 topic hz /mavros/vision_pose/pose
+ros2 topic hz /mavros/vision_speed/speed_twist
+```
+
+備考: ArduPilot側は `VISO_TYPE=1` が必要です。`EK3_SRC1_POSXY/VELXY/YAW=6` の設定はそのまま使用できます。
 
 ### 4.5 RViz2 で GLIM/MAVROS の Pose 整合を事前確認（実機前推奨）
 
