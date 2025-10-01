@@ -6,14 +6,22 @@
 
 ```mermaid
 flowchart LR
-  A[Livox MID360] -->|/livox/lidar (~10Hz)| B[GLIM (ROS2)];
-  A -->|/livox/imu (~200Hz)| B;
-  B -->|/glim_ros/odom (~10Hz)| C[glim_extnav_bridge];
-  B -->|/glim_ros/odom_corrected (~10Hz)| C;
-  B -->|/glim_ros/pose (~10Hz)| C;
-  C -->|/mavros/odometry/in (10-20Hz)| D[MAVROS];
-  D -->|MAVLink: ODOMETRY| E[ArduPilot EKF3];
-  E -->|推定ローカル位置/速度/ヨー| F[LOITER制御];
+  A["Livox MID360"] --> L1["/livox/lidar (~10Hz)"];
+  L1 --> B["GLIM (ROS2)"];
+  A --> L2["/livox/imu (~200Hz)"];
+  L2 --> B;
+  B --> L3["/glim_ros/odom (~10Hz)"];
+  B --> L4["/glim_ros/odom_corrected (~10Hz)"];
+  B --> L5["/glim_ros/pose (~10Hz)"];
+  L3 --> C["glim_extnav_bridge"];
+  L4 --> C;
+  L5 --> C;
+  C --> L6["/mavros/odometry/in (10-20Hz)"];
+  L6 --> D["MAVROS"];
+  D --> L7["MAVLink: ODOMETRY"];
+  L7 --> E["ArduPilot EKF3"];
+  E --> L8["推定ローカル位置/速度/ヨー"];
+  L8 --> F["LOITER制御"];
 ```
 
 - 基本は `/glim_ros/odom` を外部航法として供給（`use_corrected=true` でループ閉じ込み後も可）
