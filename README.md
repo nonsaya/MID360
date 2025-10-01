@@ -90,6 +90,95 @@ ros2 launch mavros apm.launch \
 - GUIDEDモードでの座標移動（安全柵＋Failsafe設計）
 - ログ基盤（rosbag2 + ArduPilotログ）によるチューニング
 
+## 外部航法ブリッジ（GLIM→MAVROS /mavros/odometry/in）
+
+GLIMの`/glim_ros/odom`（または`/glim_ros/odom_corrected`）をMAVROSの`/mavros/odometry/in`へ10–20 Hzで転送するROS 2ノードを追加。
+
+- パッケージ: `ros2_ws2/src/glim_extnav_bridge`
+- 実行: launchで起動
+
+ビルド/起動:
+```bash
+source /opt/ros/humble/setup.bash
+cd ~/repo/mid360/ros2_ws2
+colcon build --packages-select glim_extnav_bridge
+source install/setup.bash
+ros2 launch glim_extnav_bridge bridge.launch.py \
+  glim_namespace:=/glim_ros \
+  use_corrected:=false \
+  publish_rate_hz:=15.0 \
+  odom_child_frame_id:="" \
+  restamp_source:=none \
+  reject_older_than_ms:=200.0 \
+  publish_immediately:=true
+```
+
+メモ:
+- `use_corrected=true`でループ閉じ込み後の`/glim_ros/odom_corrected`を送る運用も可能。
+- `odom_child_frame_id`で`child_frame_id`を上書き可能（ArduPilotの機体座標系名と合わせる場合に使用）。
+- タイムスタンプ安定化:
+  - `restamp_source`: `none`（元stamp温存）, `arrival`/`now`（ノード時刻で再スタンプ）
+  - `reject_older_than_ms`: `none`利用時に古いstampを拒否する閾値（ms）
+  - `publish_immediately`: コールバック到着で即時配信（指定レートに従い抑制）
+
+トピック確認:
+```bash
+ros2 topic echo /mavros/odometry/in | head -n 20
+```
+
+QoS: Reliable / KeepLast(10)
+
+期待周波数: 10–20 Hz（`publish_rate_hz`で調整）
+
+## ArduPilot EKF3 ExternalNav 設定（例）
+
+外部航法（ODOMETRY）を利用するための主なパラメータ（EKF3 instance1例）:
+
+- `EK3_SRC1_POSXY = 6`（ExternalNav）
+- `EK3_SRC1_POSZ  = 0`（高度はBARO/RNGFに委譲推奨）
+- `EK3_SRC1_VELXY = 6`（ExternalNav）
+- `EK3_SRC1_VELZ  = 0`（必要に応じ）
+- `EK3_SRC1_YAW   = 6`（External Yaw、GLIMのYawを使う場合）
+- `VISO_TYPE = 1`（MAVLink ODOMETRY使用）
+- `VISO_DELAY` / `VISO_POS_X/Y/Z` / `VISO_YAW`（機体座標→センサ座標のオフセット設定）
+- `AHRS_EKF_TYPE = 3`（EKF3）
+
+注意:
+- フレーム: MAVROS `/mavros/odometry/in`はローカルNED想定。GLIMの`odom`がENUの場合、ArduPilot側で変換されるが、ヨー原点・左右手系の整合に注意。
+- 一貫した`frame_id`/`child_frame_id`（例: `odom`/`base_link`）を継続して送る。
+- 高度はBARO主／低高度はレンジファインダー併用推奨。
+
+## GUIDED 座標移動（例）
+
+準備:
+```bash
+ros2 service call /mavros/set_mode mavros_msgs/srv/SetMode '{custom_mode: "GUIDED"}'
+ros2 service call /mavros/cmd/arming mavros_msgs/srv/CommandBool '{value: true}'
+```
+
+ローカル座標指令（ENU）:
+```bash
+ros2 topic pub /mavros/setpoint_position/local geometry_msgs/msg/PoseStamped \
+"{header: {frame_id: 'map'}, pose: {position: {x: 2.0, y: 0.0, z: 1.5}, orientation: {w: 1.0}}}" -r 10
+```
+
+または速度指令:
+```bash
+ros2 topic pub /mavros/setpoint_velocity/cmd_vel geometry_msgs/msg/Twist \
+"{linear: {x: 0.5, y: 0.0, z: 0.0}}" -r 10
+```
+
+安全:
+- Loiterで安定確認後にGUIDEDへ移行。
+- Failsafe/ジオフェンスを設定。
+## 参考ドキュメント
+- `jetson_GLIM_cpu-install.md`（詳細手順）
+- `MID360_LIVOX.md`（ドライバ運用注意）
+- `Origin-HardWare.md`（機材・環境サマリー）
+
+## 運用ガイド
+- `LOITER.md`（LOITER運用ガイド）
+
 ## 参考ドキュメント
 - `jetson_GLIM_cpu-install.md`（詳細手順）
 - `MID360_LIVOX.md`（ドライバ運用注意）
