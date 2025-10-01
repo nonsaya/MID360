@@ -112,13 +112,13 @@ colcon build --packages-select glim_extnav_bridge
 source install/setup.bash
 ```
 
-起動（既定: GLIMの stamp を転送）:
+起動（推奨: 到着時刻で再スタンプ＝arrival）:
 ```bash
 ros2 launch glim_extnav_bridge bridge.launch.py \
   glim_namespace:=/glim_ros \
   use_corrected:=false \
   publish_rate_hz:=15.0 \
-  restamp_source:=none \
+  restamp_source:=arrival \
   reject_older_than_ms:=200.0 \
   publish_immediately:=true
 ```
@@ -136,6 +136,34 @@ ros2 topic info /mavros/odometry/in
 トラブルシュート: `launch` が `libexec directory ... does not exist` を出す場合は、直前に `colcon build` と `source install/setup.bash` が実行されているか確認
 
 ---
+
+### 4.6 代替: MAVROSのvision経路で供給（ODOMETRYが採用されない場合）
+
+- 目的: GLIMの出力を `/mavros/vision_pose/pose` と `/mavros/vision_speed/speed_twist` にリパブリッシュ
+- 前提: 本リポジトリには`glim_vision_bridge`を追加済み（ビルド済みなら以下のbuildはスキップ可）
+
+ビルド（初回のみ）:
+```bash
+source /opt/ros/humble/setup.bash
+cd ~/repo/mid360/ros2_ws2
+colcon build --packages-select glim_vision_bridge
+source install/setup.bash
+```
+
+起動（既定: GLIMの `/glim_ros/odom` を使用）:
+```bash
+ros2 launch glim_vision_bridge bridge.launch.py \
+  glim_namespace:=/glim_ros \
+  use_corrected:=false
+```
+
+確認（期待周波数 ≈10 Hz）:
+```bash
+ros2 topic hz /mavros/vision_pose/pose
+ros2 topic hz /mavros/vision_speed/speed_twist
+```
+
+備考: ArduPilot側は `VISO_TYPE=1` が必要です。`EK3_SRC1_POSXY/VELXY/YAW=6` の設定はそのまま使用できます。
 
 ### 4.5 RViz2 で GLIM/MAVROS の Pose 整合を事前確認（実機前推奨）
 
