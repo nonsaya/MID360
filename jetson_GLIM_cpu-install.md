@@ -222,22 +222,24 @@ ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
 #   ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
 ```
 
-#### 7-2-b. ビューワ無し起動（ヘッドレス最小構成）
-`~/config/config_ros.json` の `extension_modules` を次の内容に変更します。
-```json
-{
-  "glim_ros": {
-    "extension_modules": ["libmemory_monitor.so"]
-  }
-}
-```
-その後、以下で起動します。
+#### 7-2-b. ヘッドレス環境での起動（DISPLAY無し）
+
+**重要**: 現行のGLIMビルドでは、ROSパブリッシャーがビューワモジュール（`libstandard_viewer.so`）と結合しているため、ビューワを完全に無効にするとトピックが配信されません。ヘッドレス環境では必ず`xvfb-run`を使用してください。
+
 ```bash
+# xvfbが未インストールの場合（初回のみ）
+sudo apt update && sudo apt install -y xvfb
+
+# ヘッドレス環境での起動（推奨）
 export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
 source /opt/ros/humble/setup.bash
 source ~/repo/mid360/ros2_ws2/install/setup.bash
-ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
+xvfb-run -a -s "-screen 0 1280x800x24" \
+  ros2 run glim_ros glim_rosnode --ros-args \
+    -p config_path:=$(realpath ~/config)
 ```
+
+**注意**: `extension_modules`を空にしたり`libstandard_viewer.so`を除外すると、`/glim_ros/odom`や`/glim_ros/points`などのトピックが配信されなくなります。必ず`["libstandard_viewer.so", "libmemory_monitor.so"]`を含める必要があります。
 
 ---
 

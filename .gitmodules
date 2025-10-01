@@ -7,3 +7,9 @@
 [submodule "ros2_ws2/src/glim_ros2"]
 	path = ros2_ws2/src/glim_ros2
 	url = https://github.com/koide3/glim_ros2
+[submodule "include/ikd-Tree"]
+	path = include/ikd-Tree
+	url = https://github.com/hku-mars/IKD-Tree
+[submodule "ros2_ws/src/livox_ros_driver2"]
+	path = ros2_ws/src/livox_ros_driver2
+	url = https://github.com/Livox-SDK/livox_ros_driver2
