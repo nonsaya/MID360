@@ -1,7 +1,7 @@
 site_name: MID360 LOITER Docs
-site_url: https://example.com
-repo_url: https://github.com/OWNER/mid360
-repo_name: OWNER/mid360
+site_url: https://nonsaya.github.io/MID360/
+repo_url: https://github.com/nonsaya/MID360
+repo_name: nonsaya/MID360
 theme:
   name: material
   features:
