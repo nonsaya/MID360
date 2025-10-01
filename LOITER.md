@@ -118,7 +118,6 @@ ros2 launch glim_extnav_bridge bridge.launch.py \
   glim_namespace:=/glim_ros \
   use_corrected:=false \
   publish_rate_hz:=15.0 \
-  odom_child_frame_id:="" \
   restamp_source:=none \
   reject_older_than_ms:=200.0 \
   publish_immediately:=true
