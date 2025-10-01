@@ -107,12 +107,19 @@ ros2 launch glim_extnav_bridge bridge.launch.py \
   glim_namespace:=/glim_ros \
   use_corrected:=false \
   publish_rate_hz:=15.0 \
-  odom_child_frame_id:=""
+  odom_child_frame_id:="" \
+  restamp_source:=none \
+  reject_older_than_ms:=200.0 \
+  publish_immediately:=true
 ```
 
 メモ:
 - `use_corrected=true`でループ閉じ込み後の`/glim_ros/odom_corrected`を送る運用も可能。
 - `odom_child_frame_id`で`child_frame_id`を上書き可能（ArduPilotの機体座標系名と合わせる場合に使用）。
+- タイムスタンプ安定化:
+  - `restamp_source`: `none`（元stamp温存）, `arrival`/`now`（ノード時刻で再スタンプ）
+  - `reject_older_than_ms`: `none`利用時に古いstampを拒否する閾値（ms）
+  - `publish_immediately`: コールバック到着で即時配信（指定レートに従い抑制）
 
 トピック確認:
 ```bash
