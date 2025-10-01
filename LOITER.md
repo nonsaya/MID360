@@ -78,9 +78,9 @@ ros2 topic echo /mavros/state
 
 ---
 
-### 4. GLIM→MAVROS 外部航法ブリッジ起動
+### 4. GLIM→MAVROS 外部航法ブリッジ（先にビルド→起動）
 
-事前にビルド:
+先にビルド:
 ```bash
 source /opt/ros/humble/setup.bash
 cd ~/repo/mid360/ros2_ws2

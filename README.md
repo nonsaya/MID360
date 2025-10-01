@@ -97,7 +97,7 @@ GLIMの`/glim_ros/odom`（または`/glim_ros/odom_corrected`）をMAVROSの`/ma
 - パッケージ: `ros2_ws2/src/glim_extnav_bridge`
 - 実行: launchで起動
 
-ビルド/起動:
+ビルド（先行）/起動:
 ```bash
 source /opt/ros/humble/setup.bash
 cd ~/repo/mid360/ros2_ws2
