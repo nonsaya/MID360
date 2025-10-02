@@ -106,7 +106,47 @@ pkill -f glim_rosnode || true
 
 ---
 
-## 3) MAVROS（ArduPilot, /dev/ttyTHS1 921600bps）
+## 3) GLIM→MAVROS外部航法ブリッジ
+
+### ビルド（初回のみ）
+```bash
+source /opt/ros/humble/setup.bash
+cd ~/repo/MID360/ros2_ws2
+colcon build --packages-select glim_extnav_bridge
+source install/setup.bash
+```
+
+### 起動（推奨設定）
+```bash
+source /opt/ros/humble/setup.bash
+source ~/repo/MID360/ros2_ws2/install/setup.bash
+
+ros2 launch glim_extnav_bridge bridge.launch.py \
+  glim_namespace:=/glim_ros \
+  use_corrected:=false \
+  publish_rate_hz:=15.0 \
+  restamp_source:=arrival \
+  reject_older_than_ms:=200.0 \
+  publish_immediately:=true
+```
+
+### 確認
+```bash
+ros2 topic hz /mavros/odometry/in   # 約10-15Hz期待
+ros2 topic info /mavros/odometry/in -v
+```
+
+### 停止方法
+```bash
+# 前面起動なら Ctrl+C
+
+# バックグラウンドや別シェルで止める
+pkill -f glim_extnav_bridge || true
+```
+
+---
+
+## 4) MAVROS（ArduPilot, /dev/ttyTHS1 921600bps）
 
 ### インストール
 ```bash
@@ -153,7 +193,7 @@ pkill -f 'ros2 launch mavros apm.launch'
 
 ---
 
-## 4) 再インストール手順（サマリ）
+## 5) 再インストール手順（サマリ）
 
 1. ROS 2 Humble インストール
 2. リポジトリ取得・サブモジュール初期化
@@ -168,21 +208,23 @@ pkill -f 'ros2 launch mavros apm.launch'
 6. Livox SDK2 / livox_ros_driver2 をセットアップ、`MID360_config.json` をJetson/MID360 IPに合わせる
 7. Livox SDK サンプルで疎通確認 → ROS 2 ドライバ起動（PointCloud2にしたい場合は `xfer_format:=0`）
 8. GLIM起動（`~/config` 参照）→ `/glim_ros/points`, `/glim_ros/odom` を確認
-9. MAVROS インストール・権限設定 → 起動・トピック確認
+9. GLIM→MAVROS外部航法ブリッジビルド・起動 → `/mavros/odometry/in` を確認
+10. MAVROS インストール・権限設定 → 起動・トピック確認
 
 ---
 
-## 5) トラブルシュート（要点）
+## 6) トラブルシュート（要点）
 
 - Livox "bind failed": 二重起動停止、host_ip/ポート、疎通確認
 - 別PCからPointCloud2が見えない: `xfer_format:=0`（標準型に切替）
 - RViz表示不可: Fixed Frameを`livox_frame`や`map`に手入力、Color/Size調整
 - ドメイン不一致: `ROS_DOMAIN_ID` の統一（未設定=0推奨）
 - シリアル接続不可: dialout権限、getty停止、配線・電源確認
+- ブリッジでトピックが出ない: GLIM/MAVROS起動確認、`restamp_source`パラメータ調整
 
 ---
 
-## 6) Git 保存（このドキュメントの更新方法）
+## 7) Git 保存（このドキュメントの更新方法）
 
 ```bash
 cd ~/repo/mid360
