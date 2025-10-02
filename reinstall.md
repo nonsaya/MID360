@@ -26,7 +26,8 @@ source /opt/ros/humble/setup.bash
 source ~/repo/MID360/ros2_ws2/install/setup.bash
 
 # Launch (推奨)
-ros2 launch livox_ros_driver2 msg_MID360_launch.py xfer_format:=0
+# インストール済みの launch は xfer_format=0（PointCloud2）に設定済み
+ros2 launch livox_ros_driver2 msg_MID360_launch.py
 
 # 直接ノード（例）
 # ros2 run livox_ros_driver2 livox_ros_driver2_node --ros-args \
@@ -47,6 +48,18 @@ ros2 topic echo -n1 /livox/imu
   - 設定host_ipがJetsonの実IPと一致しているか
   - `ping 192.168.1.3`、ポート競合なし（56100-56501）
 - CustomMsgを別PCで見られない: `xfer_format:=0`でPointCloud2に切替
+
+### 停止方法
+```bash
+# 前面起動なら Ctrl+C
+
+# バックグラウンドや別シェルで止める
+pkill -f livox_ros_driver2
+pkill -f msg_MID360_launch.py
+
+# SDKサンプルを動かしていた場合
+pkill -f livox_lidar_quick_start || true
+```
 
 ---
 
@@ -82,6 +95,14 @@ ros2 topic hz /glim_ros/odom     # 目安: 10 Hz
 ### RViz2
 - Fixed Frame: `map`（不明なら `/glim_ros/odom` の header.frame_id を参照）
 - Add → PointCloud2 → Topic `/glim_ros/points`
+
+### 停止方法
+```bash
+# 前面起動なら Ctrl+C
+
+# バックグラウンドやPID不明時
+pkill -f glim_rosnode || true
+```
 
 ---
 
@@ -120,6 +141,15 @@ ros2 topic hz /mavros/imu/data
 
 ### 注意（ROSドメイン）
 - すべての端末・ノードで同じ `ROS_DOMAIN_ID` に揃える。基本は未設定（=0）。
+
+### 停止方法
+```bash
+# 前面起動なら Ctrl+C
+
+# バックグラウンドや別シェルで止める
+pkill -f mavros_node
+pkill -f 'ros2 launch mavros apm.launch'
+```
 
 ---
 
