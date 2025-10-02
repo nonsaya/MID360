@@ -251,4 +251,6 @@ git commit -m "docs: add reinstall and startup guide (MID360, GLIM, MAVROS)"
 git push
 ```
 
+関連ドキュメント: Backup & Restore 手順は GitHub Pages の "Backup & Restore" に掲載（`docs/backup_restore.md`）。
+
 
