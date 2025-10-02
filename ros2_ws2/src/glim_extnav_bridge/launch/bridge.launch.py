@@ -12,6 +12,7 @@ def generate_launch_description():
     restamp_source = LaunchConfiguration('restamp_source')
     reject_older_than_ms = LaunchConfiguration('reject_older_than_ms')
     publish_immediately = LaunchConfiguration('publish_immediately')
+    enable_vision_bridge = LaunchConfiguration('enable_vision_bridge')
 
     return LaunchDescription([
         DeclareLaunchArgument('glim_namespace', default_value='/glim_ros'),
@@ -21,6 +22,7 @@ def generate_launch_description():
         DeclareLaunchArgument('restamp_source', default_value='none'),
         DeclareLaunchArgument('reject_older_than_ms', default_value='200.0'),
         DeclareLaunchArgument('publish_immediately', default_value='true'),
+        DeclareLaunchArgument('enable_vision_bridge', default_value='false'),
 
         Node(
             package='glim_extnav_bridge',
@@ -35,6 +37,7 @@ def generate_launch_description():
                 'restamp_source': restamp_source,
                 'reject_older_than_ms': reject_older_than_ms,
                 'publish_immediately': publish_immediately,
+                'enable_vision_bridge': enable_vision_bridge,
             }]
         )
     ])
