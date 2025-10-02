@@ -108,6 +108,24 @@ pkill -f glim_rosnode || true
 
 ## 3) GLIM→MAVROS外部航法ブリッジ
 
+### 起動/停止 クイックリファレンス
+```bash
+# 起動
+source /opt/ros/humble/setup.bash
+source ~/repo/MID360/ros2_ws2/install/setup.bash
+ros2 launch glim_extnav_bridge bridge.launch.py \
+  glim_namespace:=/glim_ros \
+  use_corrected:=false \
+  publish_rate_hz:=15.0 \
+  restamp_source:=arrival \
+  reject_older_than_ms:=200.0 \
+  publish_immediately:=true
+
+# 停止
+# 前面起動なら Ctrl+C
+pkill -f glim_extnav_bridge || true
+```
+
 ### ビルド（初回のみ）
 ```bash
 source /opt/ros/humble/setup.bash
