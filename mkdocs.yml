@@ -14,6 +14,7 @@ plugins:
 nav:
   - Home: index.md
   - LOITER: LOITER.md
+  - Backup & Restore: backup_restore.md
 markdown_extensions:
   - admonition
   - toc:

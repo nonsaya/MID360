@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, TwistStamped
 from builtin_interfaces.msg import Time
 
 
@@ -22,6 +22,8 @@ class GlimExtnavBridge(Node):
         self.declare_parameter('reject_older_than_ms', 200.0)
         # publish immediately on callback if rate allows
         self.declare_parameter('publish_immediately', True)
+        # also publish to vision topics (pose/speed) for MAVROS vision plugins
+        self.declare_parameter('enable_vision_bridge', False)
 
         glim_ns = self.get_parameter('glim_namespace').get_parameter_value().string_value
         use_corrected = self.get_parameter('use_corrected').get_parameter_value().bool_value
@@ -30,6 +32,7 @@ class GlimExtnavBridge(Node):
         self.restamp_source = self.get_parameter('restamp_source').get_parameter_value().string_value
         self.reject_older_than_ms = self.get_parameter('reject_older_than_ms').get_parameter_value().double_value
         self.publish_immediately = self.get_parameter('publish_immediately').get_parameter_value().bool_value
+        self.enable_vision_bridge = self.get_parameter('enable_vision_bridge').get_parameter_value().bool_value
 
         # Source topics from GLIM
         odom_topic = f"{glim_ns}/odom_corrected" if use_corrected else f"{glim_ns}/odom"
@@ -45,6 +48,13 @@ class GlimExtnavBridge(Node):
 
         self.sub_odom = self.create_subscription(Odometry, odom_topic, self._on_odom, qos)
         self.pub_mavros_odom = self.create_publisher(Odometry, '/mavros/odometry/in', 10)
+        # Optional vision publishers
+        if self.enable_vision_bridge:
+            self.pub_vision_pose = self.create_publisher(PoseStamped, '/mavros/vision_pose/pose', 10)
+            self.pub_vision_speed = self.create_publisher(TwistStamped, '/mavros/vision_speed/speed_twist', 10)
+        else:
+            self.pub_vision_pose = None
+            self.pub_vision_speed = None
 
         # Timer to throttle to desired rate
         period = 1.0 / max(1e-3, self.publish_rate_hz)
@@ -52,6 +62,8 @@ class GlimExtnavBridge(Node):
 
         self.get_logger().info(f"Subscribing: {odom_topic}")
         self.get_logger().info("Publishing -> /mavros/odometry/in")
+        if self.enable_vision_bridge:
+            self.get_logger().info("Publishing (vision) -> /mavros/vision_pose/pose, /mavros/vision_speed/speed_twist")
 
     def _on_odom(self, msg: Odometry):
         # Copy to avoid mutating shared instance unexpectedly
@@ -100,7 +112,21 @@ class GlimExtnavBridge(Node):
                 self.latest_odom.header.stamp.nanosec == self.last_published_stamp.nanosec):
                 return
 
+        # Publish ODOMETRY to MAVROS
         self.pub_mavros_odom.publish(self.latest_odom)
+
+        # Optionally publish vision pose and speed for MAVROS vision plugins
+        if self.enable_vision_bridge and self.pub_vision_pose is not None and self.pub_vision_speed is not None:
+            pose_msg = PoseStamped()
+            pose_msg.header = self.latest_odom.header
+            pose_msg.pose = self.latest_odom.pose.pose
+
+            twist_msg = TwistStamped()
+            twist_msg.header = self.latest_odom.header
+            twist_msg.twist = self.latest_odom.twist.twist
+
+            self.pub_vision_pose.publish(pose_msg)
+            self.pub_vision_speed.publish(twist_msg)
         self.last_publish_time = now
         self.last_published_stamp = self.latest_odom.header.stamp
 
