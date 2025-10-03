@@ -74,6 +74,11 @@ pkill -f livox_lidar_quick_start || true
   - `imu_topic`: `/livox/imu`
   - `points_topic`: `/livox/lidar`
 
+### 事前準備（ヘッドレス実行に必要なパッケージ）
+```bash
+sudo apt install -y xvfb xauth mesa-utils
+```
+
 ### 起動（ディスプレイあり）
 ```bash
 source /opt/ros/humble/setup.bash
@@ -84,6 +89,33 @@ ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
 ```bash
 xvfb-run -a -s "-screen 0 1280x800x24" \
   ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
+```
+
+### もし `Package 'glim_ros' not found` となる場合
+- ワークスペース側の`glim_ros`をビルドしてから起動してください。
+```bash
+source /opt/ros/humble/setup.bash
+cd ~/repo/MID360/ros2_ws2
+colcon build --packages-select glim_ros
+source install/setup.bash
+
+xvfb-run -a -s "-screen 0 1280x800x24" \
+  ros2 run glim_ros glim_rosnode --ros-args -p config_path:=$(realpath ~/config)
+```
+
+### 代替（GLIM本体を~/.localにインストールして利用する場合）
+```bash
+# GLIM本体のビルド・インストール（必要時）
+source /opt/ros/humble/setup.bash
+cd ~/repo/mid360/glim
+rm -rf build && mkdir build && cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=$HOME/.local -DCMAKE_BUILD_TYPE=Release
+make -j$(nproc)
+make install
+
+# 環境読み込み
+source $HOME/.local/share/glim/local_setup.bash
+export AMENT_PREFIX_PATH=$HOME/.local:$AMENT_PREFIX_PATH
 ```
 
 ### 確認
